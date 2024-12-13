@@ -6,7 +6,6 @@
     <meta name="format-detection" content="telephone=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Star Snake</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -17,32 +16,23 @@
         <!-- Главное меню -->
         <div id="main-menu" style="display: flex;">
             <div class="logo-container">
-                <h1 class="glow-text">Star Snake</h1>
+                <h1 class="glow-text">Star<br>Snake</h1>
             </div>
             <div id="score-container">
                 <div class="score-item">
-                    <span class="score-label">Лучший счет:</span>
-                    <span id="best-score" class="score-value">0</span>
+                    <span>Лучший счет: </span>
+                    <span id="best-score">0</span>
                 </div>
-                <div class="score-item sun-balance">
-                    <span class="sun-icon">☀️</span>
-                    <span id="sun-balance" class="score-value">0</span>
+                <div class="score-item">
+                    <span>☀️</span>
+                    <span id="sun-balance">0</span>
                 </div>
             </div>
-            <div id="timer" class="timer-container"></div>
             <div class="button-container">
-                <button class="button play-button" onclick="tryStartGame()">
-                    <span class="button-text">Играть</span>
-                </button>
-                <button class="button shop-button" onclick="showShop()">
-                    <span class="button-text">Магазин</span>
-                </button>
-                <button class="button tasks-button" onclick="showTasks()">
-                    <span class="button-text">Задания</span>
-                </button>
-                <button class="button leaderboard-button" onclick="showLeaderboard()">
-                    <span class="button-text">Таблица лидеров</span>
-                </button>
+                <button class="button play-button" onclick="tryStartGame()">Играть</button>
+                <button class="button shop-button" onclick="showShop()">Магазин</button>
+                <button class="button tasks-button" onclick="showTasks()">Задания</button>
+                <button class="button leaderboard-button" onclick="showLeaderboard()">Таблица лидеров</button>
             </div>
         </div>
 
@@ -54,9 +44,6 @@
                     <div id="sun-display" class="game-sun">☀️ 0</div>
                 </div>
                 <canvas id="gameCanvas"></canvas>
-                <div class="game-controls">
-                    <div class="control-hint">Используйте стрелки для управления</div>
-                </div>
             </div>
         </div>
 
@@ -70,9 +57,7 @@
                         <span class="item-price">1000 ☀️</span>
                         <span class="item-description">+10% к заработку sun</span>
                     </div>
-                    <button class="button shop-buy-button" onclick="buySunSkin()">
-                        <span class="button-text">Купить</span>
-                    </button>
+                    <button class="button shop-buy-button" onclick="buySunSkin()">Купить</button>
                 </div>
                 <div class="shop-item premium">
                     <div class="item-info">
@@ -80,9 +65,7 @@
                         <span class="item-price">VIP</span>
                         <span class="item-description">+50% к заработку sun</span>
                     </div>
-                    <button class="button premium-button" onclick="buyPremiumSkin()">
-                        <span class="button-text">Получить</span>
-                    </button>
+                    <button class="button premium-button" onclick="buyPremiumSkin()">Получить</button>
                 </div>
             </div>
         </div>
@@ -97,12 +80,8 @@
                         <span class="task-reward">Награда: 100 ☀️</span>
                     </div>
                     <div class="task-buttons">
-                        <button class="button task-button" onclick="window.open('https://t.me/mariartytt')">
-                            <span class="button-text">Перейти</span>
-                        </button>
-                        <button class="button task-button" onclick="checkSubscription()">
-                            <span class="button-text">Проверить</span>
-                        </button>
+                        <button class="button task-button" onclick="window.open('https://t.me/mariartytt')">Перейти</button>
+                        <button class="button task-button" onclick="checkSubscription()">Проверить</button>
                     </div>
                 </div>
             </div>
