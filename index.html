@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Snake</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="animated-bg"></div>
+    <div class="container">
+        <!-- Главное меню -->
+        <div id="main-menu" style="display: flex;">
+            <div class="logo-container">
+                <h1 class="glow-text">Star Snake</h1>
+                <div class="logo-stars"></div>
+            </div>
+            <div id="score-container">
+                <div class="score-item">
+                    <span class="score-label">Лучший счет:</span>
+                    <span id="best-score" class="score-value">0</span>
+                </div>
+                <div class="score-item sun-balance">
+                    <span class="sun-icon">☀️</span>
+                    <span id="sun-balance" class="score-value">0</span>
+                </div>
+            </div>
+            <div id="timer" class="timer-container"></div>
+            <div class="button-container">
+                <button class="button play-button" onclick="tryStartGame()">
+                    <span class="button-text">Играть</span>
+                    <div class="button-glow"></div>
+                </button>
+                <button class="button shop-button" onclick="showShop()">
+                    <span class="button-text">Магазин</span>
+                    <div class="button-glow"></div>
+                </button>
+                <button class="button tasks-button" onclick="showTasks()">
+                    <span class="button-text">Задания</span>
+                    <div class="button-glow"></div>
+                </button>
+                <button class="button leaderboard-button" onclick="showLeaderboard()">
+                    <span class="button-text">Таблица лидеров</span>
+                    <div class="button-glow"></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Игровой контейнер -->
+        <div id="game-container" style="display: none;">
+            <div class="game-wrapper">
+                <div class="game-header">
+                    <div id="score" class="game-score">Score: 0</div>
+                    <div id="sun-display" class="game-sun">☀️ 0</div>
+                </div>
+                <canvas id="gameCanvas"></canvas>
+                <div class="game-controls">
+                    <div class="control-hint">Используйте стрелки для управления</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Магазин -->
+        <div id="shop-container" style="display: none;">
+            <h2 class="section-title">Магазин</h2>
+            <div class="shop-items">
+                <div class="shop-item">
+                    <div class="item-info">
+                        <span class="item-name">Sun Скин</span>
+                        <span class="item-price">1000 ☀️</span>
+                        <span class="item-description">+10% к заработку sun</span>
+                    </div>
+                    <button class="button shop-buy-button" onclick="buySunSkin()">
+                        <span class="button-text">Купить</span>
+                        <div class="button-glow"></div>
+                    </button>
+                </div>
+                <div class="shop-item premium">
+                    <div class="item-info">
+                        <span class="item-name">Premium Скин</span>
+                        <span class="item-price">VIP</span>
+                        <span class="item-description">+50% к заработку sun</span>
+                    </div>
+                    <button class="button premium-button" onclick="buyPremiumSkin()">
+                        <span class="button-text">Получить</span>
+                        <div class="button-glow"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Задания -->
+        <div id="tasks-container" style="display: none;">
+            <h2 class="section-title">Задания</h2>
+            <div class="tasks-list">
+                <div class="task-item">
+                    <div class="task-info">
+                        <span class="task-name">Подписаться на канал</span>
+                        <span class="task-reward">Награда: 100 ☀️</span>
+                    </div>
+                    <div class="task-buttons">
+                        <button class="button task-button" onclick="window.open('https://t.me/mariartytt')">
+                            <span class="button-text">Перейти</span>
+                            <div class="button-glow"></div>
+                        </button>
+                        <button class="button task-button" onclick="checkSubscription()">
+                            <span class="button-text">Проверить</span>
+                            <div class="button-glow"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Таблица лидеров -->
+        <div id="leaderboard-container" style="display: none;">
+            <h2 class="section-title">Таблица лидеров</h2>
+            <div id="leaderboard-content" class="leaderboard-list"></div>
+        </div>
+
+        <!-- Кнопка назад (только для подменю) -->
+        <button class="button back-button" onclick="showMenu()">
+            <span class="back-icon">←</span>
+            <span class="button-text">Назад</span>
+            <div class="button-glow"></div>
+        </button>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

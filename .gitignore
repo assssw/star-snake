@@ -1,0 +1,4 @@
+﻿bot.py
+__pycache__/
+*.pyc
+*.db

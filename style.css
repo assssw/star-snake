@@ -1,0 +1,443 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #45a049;
+    --background-dark: #0a0a2e;
+    --background-light: #1a1a3a;
+    --gold-color: #ffd700;
+    --text-color: #ffffff;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, var(--background-dark) 0%, var(--background-light) 100%);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Анимированный фон */
+.stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--duration, 1s) infinite ease-in-out;
+    opacity: var(--opacity, 0.7);
+}
+
+@keyframes twinkle {
+    0%, 100% { 
+        opacity: var(--opacity); 
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.2; 
+        transform: scale(1.2);
+    }
+}
+
+/* Анимированный градиент для фона игры */
+#game-container {
+    position: relative;
+    background: linear-gradient(45deg, 
+        rgba(10, 10, 46, 0.9), 
+        rgba(26, 26, 58, 0.9));
+    animation: gradientBG 15s ease infinite;
+    backdrop-filter: blur(10px);
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    position: relative;
+    padding: 20px;
+}
+
+/* Стили для контейнеров */
+#main-menu,
+#game-container,
+#shop-container,
+#leaderboard-container {
+    display: none;
+    width: 100%;
+    text-align: center;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    margin: 20px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Кнопка назад */
+.back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    padding: 10px 20px;
+    background: rgba(76, 175, 80, 0.8);
+    border-radius: 50px;
+    font-size: 14px;
+    display: none;
+    width: auto;
+    min-width: 100px;
+    backdrop-filter: blur(5px);
+}
+
+.back-button:hover {
+    background: rgba(76, 175, 80, 1);
+}
+
+/* Анимированные кнопки */
+.button {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin: 10px 0;
+    width: 220px;
+}
+
+.button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    transform: rotate(45deg);
+    transition: 0.5s;
+    opacity: 0;
+}
+
+.button:hover::before {
+    opacity: 1;
+}
+
+.play-button {
+    background: linear-gradient(45deg, #4CAF50, #45a049, #4CAF50);
+    background-size: 200% 200%;
+    animation: gradientButton 3s ease infinite;
+}
+
+@keyframes gradientButton {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Стили для игрового поля */
+#gameCanvas {
+    border: 3px solid rgba(76, 175, 80, 0.5);
+    border-radius: 15px;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 30px rgba(76, 175, 80, 0.2);
+    margin: 20px auto;
+    display: block;
+}
+
+/* Анимация конца игры */
+.game-over-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 15px;
+    animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    .button {
+        width: 180px;
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+}
+// Добавим новые переменные для эффектов
+let particleSystem = [];
+const MAX_PARTICLES = 50;
+
+// В функции render добавим новый эффект для змейки
+function render() {
+    // Очистка канваса с эффектом затухания
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Отрисовка частиц за змейкой
+    updateParticles();
+
+    // Отрисовка змейки с новыми эффектами
+    for (let i = 0; i < trail.length; i++) {
+        const segment = trail[i];
+        const isHead = i === trail.length - 1;
+        
+        // Создаем градиент для каждого сегмента
+        if (hasPremiumSkin) {
+            // Улучшенный радужный эффект
+            const hue = (Date.now() / 20 + i * 15) % 360;
+            const saturation = 80 + Math.sin(Date.now() / 1000) * 20;
+            ctx.fillStyle = `hsl(${hue}, ${saturation}%, 50%)`;
+            
+            // Добавляем свечение для премиум скина
+            ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+            ctx.shadowBlur = 15;
+        } else if (hasSunSkin) {
+            // Улучшенный золотой градиент
+            const gradient = ctx.createLinearGradient(
+                segment.x * gridSize,
+                segment.y * gridSize,
+                (segment.x + 1) * gridSize,
+                (segment.y + 1) * gridSize
+            );
+            gradient.addColorStop(0, '#ffd700');
+            gradient.addColorStop(0.5, '#ffeb3b');
+            gradient.addColorStop(1, '#ffc107');
+            ctx.fillStyle = gradient;
+            
+            // Золотое свечение
+            ctx.shadowColor = '#ffd700';
+            ctx.shadowBlur = 10;
+        } else {
+            // Улучшенный базовый скин
+            const gradient = ctx.createLinearGradient(
+                segment.x * gridSize,
+                segment.y * gridSize,
+                (segment.x + 1) * gridSize,
+                (segment.y + 1) * gridSize
+            );
+            gradient.addColorStop(0, '#4CAF50');
+            gradient.addColorStop(1, '#45a049');
+            ctx.fillStyle = gradient;
+        }
+
+        // Отрисовка сегмента с закругленными углами
+        ctx.beginPath();
+        ctx.roundRect(
+            segment.x * gridSize + 1,
+            segment.y * gridSize + 1,
+            gridSize - 2,
+            gridSize - 2,
+            isHead ? 8 : 5
+        );
+        ctx.fill();
+
+        // Сброс тени после отрисовки
+        ctx.shadowBlur = 0;
+
+        // Добавляем глаза для головы
+        if (isHead) {
+            // Определяем позицию глаз в зависимости от направления
+            const eyeOffset = gridSize * 0.2;
+            const eyeSize = gridSize * 0.15;
+            
+            // Основа глаз
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(
+                segment.x * gridSize + gridSize * 0.3,
+                segment.y * gridSize + gridSize * 0.3,
+                eyeSize,
+                0,
+                Math.PI * 2
+            );
+            ctx.arc(
+                segment.x * gridSize + gridSize * 0.7,
+                segment.y * gridSize + gridSize * 0.3,
+                eyeSize,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+
+            // Зрачки
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(
+                segment.x * gridSize + gridSize * 0.3,
+                segment.y * gridSize + gridSize * 0.3,
+                eyeSize * 0.5,
+                0,
+                Math.PI * 2
+            );
+            ctx.arc(
+                segment.x * gridSize + gridSize * 0.7,
+                segment.y * gridSize + gridSize * 0.3,
+                eyeSize * 0.5,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
+    }
+
+    // Улучшенная отрисовка яблока
+    const appleX_center = appleX * gridSize + gridSize/2;
+    const appleY_center = appleY * gridSize + gridSize/2;
+
+    // Свечение яблока
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 20;
+
+    // Градиент для яблока
+    const appleGradient = ctx.createRadialGradient(
+        appleX_center,
+        appleY_center,
+        gridSize * 0.1,
+        appleX_center,
+        appleY_center,
+        gridSize * 0.4
+    );
+    appleGradient.addColorStop(0, '#ff6b6b');
+    appleGradient.addColorStop(0.7, '#ff0000');
+    appleGradient.addColorStop(1, '#cc0000');
+
+    ctx.fillStyle = appleGradient;
+    ctx.beginPath();
+    ctx.arc(appleX_center, appleY_center, gridSize/2 - 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Добавляем блик на яблоко
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.beginPath();
+    ctx.arc(
+        appleX_center - gridSize * 0.15,
+        appleY_center - gridSize * 0.15,
+        gridSize * 0.1,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+}
+
+// Система частиц
+function createParticle(x, y) {
+    return {
+        x: x * gridSize + gridSize/2,
+        y: y * gridSize + gridSize/2,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        life: 1,
+        color: hasPremiumSkin ? 
+            `hsl(${Math.random() * 360}, 100%, 50%)` : 
+            (hasSunSkin ? '#ffd700' : '#4CAF50')
+    };
+}
+
+function updateParticles() {
+    // Добавляем новые частицы за головой змеи
+    if (dx !== 0 || dy !== 0) {
+        const head = trail[trail.length - 1];
+        particleSystem.push(createParticle(head.x, head.y));
+        if (particleSystem.length > MAX_PARTICLES) {
+            particleSystem.shift();
+        }
+    }
+
+    // Обновляем и отрисовываем частицы
+    particleSystem.forEach((particle, index) => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.life -= 0.02;
+
+        if (particle.life <= 0) {
+            particleSystem.splice(index, 1);
+            return;
+        }
+
+        ctx.fillStyle = `rgba(${particle.color}, ${particle.life})`;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, gridSize * 0.1 * particle.life, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+
+// Обновляем функцию gameOver для добавления эффектов
+function gameOver() {
+    stopGame();
+    lastGameTime = Date.now();
+    if (score > bestScore) {
+        bestScore = score;
+        document.getElementById('best-score').textContent = bestScore;
+    }
+    document.getElementById('sun-balance').textContent = sun;
+    saveUserData();
+    sendDataToBot();
+
+    // Создаем эффект взрыва частиц
+    for (let i = 0; i < 30; i++) {
+        particleSystem.push(createParticle(headX, headY));
+    }
+
+    // Анимированное сообщение о конце игры
+    const gameContainer = document.getElementById('game-container');
+    const gameOverMsg = document.createElement('div');
+    gameOverMsg.className = 'game-over-message';
+    gameOverMsg.innerHTML = `
+        <h2>Игра окончена!</h2>
+        <p>Счет: ${score}</p>
+        <p>Sun: +${Math.floor(score / 10)}</p>
+    `;
+    gameContainer.appendChild(gameOverMsg);
+
+    setTimeout(() => {
+        gameContainer.removeChild(gameOverMsg);
+        showMenu();
+        updateTimer();
+    }, 2000);
+}
