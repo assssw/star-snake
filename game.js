@@ -5,7 +5,7 @@ tg.expand();
 // Игровые переменные
 let canvas = document.getElementById('gameCanvas');
 let ctx = canvas.getContext('2d');
-let tileCount = 15;
+let tileCount = 20;
 let gridSize;
 let headX = 10;
 let headY = 10;
@@ -14,7 +14,7 @@ let dy = 0;
 let appleX = 5;
 let appleY = 5;
 let trail = [];
-let tail = 5;
+let tail = 2;
 let score = 0;
 let sun = 0;
 let isGameRunning = false;
@@ -27,6 +27,16 @@ let hasSunSkin = false;
 let hasPremiumSkin = false;
 let lastGameTime = 0;
 let bestScore = 0;
+let gameSpeed = 200;
+
+// Функция изменения размера канваса
+function resizeCanvas() {
+    const container = document.querySelector('.game-wrapper');
+    const size = Math.min(container.clientWidth, window.innerHeight * 0.6);
+    canvas.width = size;
+    canvas.height = size;
+    gridSize = size / tileCount;
+}
 
 // Инициализация при загрузке
 window.onload = function() {
@@ -38,127 +48,71 @@ window.onload = function() {
     setInterval(updateTimer, 1000);
 };
 
-// Загрузка данных пользователя
-function loadUserData() {
-    // В реальном приложении здесь будет запрос к боту
-    document.getElementById('best-score').textContent = bestScore;
-    document.getElementById('sun-balance').textContent = sun;
-}
-
-// Обновление таймера
-function updateTimer() {
-    if (!lastGameTime) return;
-    
-    const now = Date.now();
-    const timePassed = now - lastGameTime;
-    const cooldown = 10 * 60 * 1000; // 10 минут в миллисекундах
-    
-    if (timePassed < cooldown) {
-        const timeLeft = cooldown - timePassed;
-        const minutes = Math.floor(timeLeft / 60000);
-        const seconds = Math.floor((timeLeft % 60000) / 1000);
-        document.getElementById('timer').textContent = 
-            `Следующая игра через: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-        document.querySelector('button[onclick="tryStartGame()"]').disabled = true;
-    } else {
-        document.getElementById('timer').textContent = '';
-        document.querySelector('button[onclick="tryStartGame()"]').disabled = false;
-    }
-}
-
-// Функции управления меню
-function tryStartGame() {
-    if (lastGameTime && Date.now() - lastGameTime < 10 * 60 * 1000) {
-        alert('Подождите 10 минут между играми!');
-        return;
-    }
-    
-    startGame();
-}
-
-function startGame() {
-    document.getElementById('main-menu').style.display = 'none';
-    document.getElementById('game-container').style.display = 'block';
-    document.querySelector('.back-button').style.display = 'block';
-    resetGame();
-    isGameRunning = true;
-    lastTime = performance.now();
-    animationFrame = requestAnimationFrame(gameLoop);
+// Функции меню
+function hideAllContainers() {
+    ['main-menu', 'game-container', 'shop-container', 'tasks-container', 'leaderboard-container'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+    });
 }
 
 function showMenu() {
+    hideAllContainers();
     document.getElementById('main-menu').style.display = 'flex';
-    document.getElementById('game-container').style.display = 'none';
-    document.getElementById('shop-container').style.display = 'none';
-    document.getElementById('leaderboard-container').style.display = 'none';
-    document.getElementById('tasks-container').style.display = 'none';
     document.querySelector('.back-button').style.display = 'none';
     stopGame();
 }
 
 function showShop() {
-    document.getElementById('main-menu').style.display = 'none';
+    hideAllContainers();
     document.getElementById('shop-container').style.display = 'block';
-    document.querySelector('.back-button').style.display = 'block';
-}
-
-function showLeaderboard() {
-    document.getElementById('main-menu').style.display = 'none';
-    document.getElementById('leaderboard-container').style.display = 'block';
-    document.querySelector('.back-button').style.display = 'block';
-    loadLeaderboard();
+    document.querySelector('.back-button').style.display = 'flex';
 }
 
 function showTasks() {
-    document.getElementById('main-menu').style.display = 'none';
+    hideAllContainers();
     document.getElementById('tasks-container').style.display = 'block';
-    document.querySelector('.back-button').style.display = 'block';
+    document.querySelector('.back-button').style.display = 'flex';
 }
 
-// Функции магазина
-function buySunSkin() {
-    if (sun >= 1000 && !hasSunSkin) {
-        sun -= 1000;
-        hasSunSkin = true;
-        snakeColor = '#ffd700';
-        document.getElementById('sun-balance').textContent = sun;
-        alert('Вы приобрели Sun скин! Теперь вы получаете +10% к фарму.');
-        sendDataToBot();
-    } else if (hasSunSkin) {
-        alert('У вас уже есть этот скин!');
-    } else {
-        alert('Недостаточно sun! Нужно 1000.');
-    }
-}
-
-function buyPremiumSkin() {
-    tg.openTelegramLink('https://t.me/Kertiron');
-}
-
-// Функции заданий
-function checkChannelSubscription() {
-    // В реальном приложении здесь будет проверка подписки через бота
-    tg.sendData(JSON.stringify({action: 'check_channel'}));
-}
-
-// Загрузка таблицы лидеров
-function loadLeaderboard() {
-    // В реальном приложении здесь будет запрос к боту
-    const leaderboardContent = document.getElementById('leaderboard-content');
-    leaderboardContent.innerHTML = '<div class="leaderboard-item"><span>Загрузка...</span></div>';
-}
-
-// Отправка данных боту
-function sendDataToBot() {
-    const data = {
-        score: score,
-        sun: sun,
-        bestScore: bestScore
-    };
-    tg.sendData(JSON.stringify(data));
+function showLeaderboard() {
+    hideAllContainers();
+    document.getElementById('leaderboard-container').style.display = 'block';
+    document.querySelector('.back-button').style.display = 'flex';
+    loadLeaderboard();
 }
 
 // Игровые функции
+function tryStartGame() {
+    const now = Date.now();
+    const cooldownTime = hasPremiumSkin ? 5 * 60 * 1000 : 10 * 60 * 1000;
+    
+    if (lastGameTime && now - lastGameTime < cooldownTime) {
+        const timeLeft = Math.ceil((cooldownTime - (now - lastGameTime)) / 60000);
+        alert(`Подождите ${timeLeft} минут между играми!${hasPremiumSkin ? '\n✨ У вас Premium скин: ждать 5 минут вместо 10!' : ''}`);
+        return;
+    }
+    startGame();
+}
+
+function startGame() {
+    hideAllContainers();
+    document.getElementById('game-container').style.display = 'block';
+    document.querySelector('.back-button').style.display = 'flex';
+    canvas = document.getElementById('gameCanvas');
+    ctx = canvas.getContext('2d');
+    resizeCanvas();
+    resetGame();
+    
+    // Увеличиваем задержку до 3 секунд
+    setTimeout(() => {
+        isGameRunning = true;
+        lastTime = performance.now();
+        lastGameTime = Date.now();
+        saveUserData();
+        animationFrame = requestAnimationFrame(gameLoop);
+    }, 3000);
+}
+
 function gameLoop(currentTime) {
     if (!isGameRunning) return;
 
@@ -166,14 +120,12 @@ function gameLoop(currentTime) {
 
     if (!currentTime) currentTime = performance.now();
     const deltaTime = currentTime - lastTime;
-    const speed = 200; // Фиксированная скорость для лучшего контроля
     
-    if (deltaTime > speed) {
+    if (deltaTime > gameSpeed) {
         lastTime = currentTime;
         updateGame();
+        render();
     }
-
-    render();
 }
 
 function updateGame() {
@@ -203,12 +155,10 @@ function updateGame() {
     if (headX === appleX && headY === appleY) {
         tail++;
         score += 10;
-        // Начисление sun с учетом бонусов от скинов
         let sunBonus = 1;
         if (hasSunSkin) sunBonus *= 1.1;
         if (hasPremiumSkin) sunBonus *= 1.5;
         sun += Math.floor(sunBonus);
-        
         updateScore();
         placeApple();
     }
@@ -216,120 +166,34 @@ function updateGame() {
 
 function render() {
     // Очистка канваса
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Отрисовка змейки
     for (let i = 0; i < trail.length; i++) {
-        if (hasPremiumSkin) {
-            const hue = (Date.now() / 20 + i * 10) % 360;
-            ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-        } else {
-            ctx.fillStyle = snakeColor;
-        }
-        
-        const x = trail[i].x * gridSize;
-        const y = trail[i].y * gridSize;
-        ctx.fillRect(x + 1, y + 1, gridSize - 2, gridSize - 2);
+        ctx.fillStyle = snakeColor;
+        ctx.fillRect(
+            trail[i].x * gridSize + 1,
+            trail[i].y * gridSize + 1,
+            gridSize - 2,
+            gridSize - 2
+        );
     }
 
     // Отрисовка яблока
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(appleX * gridSize + 1, appleY * gridSize + 1, gridSize - 2, gridSize - 2);
+    ctx.fillStyle = 'red';
+    ctx.fillRect(
+        appleX * gridSize + 1,
+        appleY * gridSize + 1,
+        gridSize - 2,
+        gridSize - 2
+    );
 }
 
-function gameOver() {
-    stopGame();
-    lastGameTime = Date.now();
-    if (score > bestScore) {
-        bestScore = score;
-        document.getElementById('best-score').textContent = bestScore;
-    }
-    document.getElementById('sun-balance').textContent = sun;
-    sendDataToBot();
-    alert(`Игра окончена! Счет: ${score}`);
-    showMenu();
-    updateTimer();
-}
-
-// Настройка обработчиков событий
-function setupEventListeners() {
-    document.addEventListener('keydown', handleKeyPress);
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
-    
-    // Добавляем обработчики для всех кнопок
-    document.querySelectorAll('.button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            const action = this.getAttribute('onclick');
-            if (action) {
-                e.preventDefault();
-                eval(action);
-            }
-        });
-    });
-}
-
-// Изменение размера канваса
-function resizeCanvas() {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    
-    // Уменьшаем размер поля до 90% от меньшей стороны экрана
-    const size = Math.min(windowWidth * 0.9, (windowHeight - 100) * 0.9);
-    
-    // Устанавливаем размеры канваса
-    canvas.width = size;
-    canvas.height = size;
-    
-    // Центрируем канвас
-    canvas.style.position = 'absolute';
-    canvas.style.left = '50%';
-    canvas.style.top = '50%';
-    canvas.style.transform = 'translate(-50%, -50%)';
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${size}px`;
-    
-    // Устанавливаем размер сетки
-    gridSize = size / tileCount;
-}
-
-// Сброс игры
-function resetGame() {
-    headX = 10;
-    headY = 10;
-    dx = 0;
-    dy = 0;
-    trail = [];
-    tail = 5;
-    score = 0;
-    updateScore();
-    placeApple();
-}
-
-// Обновление счета
-function updateScore() {
-    document.getElementById('score').textContent = `Score: ${score}`;
-    document.getElementById('sun-display').textContent = `☀️ ${sun}`;
-}
-
-// Размещение яблока
-function placeApple() {
-    appleX = Math.floor(Math.random() * tileCount);
-    appleY = Math.floor(Math.random() * tileCount);
-}
-
-// Остановка игры
-function stopGame() {
-    isGameRunning = false;
-    if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-    }
-}
-
-// Обработка нажатий клавиш
+// Обработчики событий
 function handleKeyPress(e) {
+    if (!isGameRunning) return;
+    
     switch(e.keyCode) {
         case 37: // left
             if (dx !== 1) { dx = -1; dy = 0; }
@@ -346,7 +210,6 @@ function handleKeyPress(e) {
     }
 }
 
-// Обработка касаний
 function handleTouchStart(e) {
     if (!isGameRunning) return;
     e.preventDefault();
@@ -367,30 +230,17 @@ function handleTouchMove(e) {
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
     
-    const minSwipeDistance = 30; // Увеличиваем минимальное расстояние свайпа
+    const minSwipeDistance = 30;
     
     if (Math.abs(deltaX) > minSwipeDistance || Math.abs(deltaY) > minSwipeDistance) {
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            // Горизонтальный свайп
-            if (deltaX > 0 && dx !== -1) {
-                dx = 1;
-                dy = 0;
-            } else if (deltaX < 0 && dx !== 1) {
-                dx = -1;
-                dy = 0;
-            }
+            if (deltaX > 0 && dx !== -1) { dx = 1; dy = 0; }
+            else if (deltaX < 0 && dx !== 1) { dx = -1; dy = 0; }
         } else {
-            // Вертикальный свайп
-            if (deltaY > 0 && dy !== -1) {
-                dx = 0;
-                dy = 1;
-            } else if (deltaY < 0 && dy !== 1) {
-                dx = 0;
-                dy = -1;
-            }
+            if (deltaY > 0 && dy !== -1) { dx = 0; dy = 1; }
+            else if (deltaY < 0 && dy !== 1) { dx = 0; dy = -1; }
         }
         
-        // Обновляем начальные координаты для следующего свайпа
         touchStartX = touchEndX;
         touchStartY = touchEndY;
     }
@@ -401,4 +251,146 @@ function handleTouchEnd() {
     touchStartY = null;
 }
 
-// ... existing code ... 
+function setupEventListeners() {
+    document.addEventListener('keydown', handleKeyPress);
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd);
+}
+
+// Вспомогательные функции
+function resetGame() {
+    headX = 10;
+    headY = 10;
+    dx = 0;
+    dy = 0;
+    trail = [];
+    tail = 2;
+    score = 0;
+    updateScore();
+    placeApple();
+}
+
+function updateScore() {
+    document.getElementById('score').textContent = `Score: ${score}`;
+    document.getElementById('sun-display').textContent = `☀️ ${sun}`;
+}
+
+function placeApple() {
+    do {
+        appleX = Math.floor(Math.random() * tileCount);
+        appleY = Math.floor(Math.random() * tileCount);
+    } while (trail.some(segment => segment.x === appleX && segment.y === appleY));
+}
+
+function gameOver() {
+    isGameRunning = false;
+    if (score > bestScore) {
+        bestScore = score;
+    }
+    saveUserData();
+    sendDataToBot();
+    alert(`Игра окончена! Счет: ${score}`);
+    showMenu();
+}
+
+function stopGame() {
+    isGameRunning = false;
+    if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+    }
+}
+
+// Функции сохранения и загрузки
+function loadUserData() {
+    const savedData = localStorage.getItem('starSnakeData');
+    if (savedData) {
+        const data = JSON.parse(savedData);
+        bestScore = data.bestScore || 0;
+        sun = data.sun || 0;
+        hasSunSkin = data.hasSunSkin || false;
+        hasPremiumSkin = data.hasPremiumSkin || false;
+        lastGameTime = data.lastGameTime || 0;
+        if (hasSunSkin) snakeColor = '#ffd700';
+    }
+    document.getElementById('best-score').textContent = bestScore;
+    document.getElementById('sun-balance').textContent = sun;
+    updateTimer();
+}
+
+function saveUserData() {
+    const data = {
+        bestScore,
+        sun,
+        hasSunSkin,
+        hasPremiumSkin,
+        lastGameTime
+    };
+    localStorage.setItem('starSnakeData', JSON.stringify(data));
+}
+
+// Обновление таймера
+function updateTimer() {
+    if (!lastGameTime) return;
+    
+    const now = Date.now();
+    const cooldown = hasPremiumSkin ? 5 * 60 * 1000 : 10 * 60 * 1000;
+    const timePassed = now - lastGameTime;
+    
+    if (timePassed < cooldown) {
+        const timeLeft = cooldown - timePassed;
+        const minutes = Math.floor(timeLeft / 60000);
+        const seconds = Math.floor((timeLeft % 60000) / 1000);
+        document.getElementById('timer').textContent = 
+            `Следующая игра через: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        document.querySelector('.play-button').disabled = true;
+    } else {
+        document.getElementById('timer').textContent = '';
+        document.querySelector('.play-button').disabled = false;
+    }
+}
+
+// Функции магазина
+function buySunSkin() {
+    if (sun >= 1000 && !hasSunSkin) {
+        sun -= 1000;
+        hasSunSkin = true;
+        snakeColor = '#ffd700';
+        document.getElementById('sun-balance').textContent = sun;
+        alert('Вы приобрели Sun скин! Теперь вы получаете +10% к фарму.');
+        saveUserData();
+        sendDataToBot();
+    } else if (hasSunSkin) {
+        alert('У вас уже есть этот скин!');
+    } else {
+        alert('Недостаточно sun! Нужно 1000.');
+    }
+}
+
+function buyPremiumSkin() {
+    tg.openTelegramLink('https://t.me/Kertiron');
+}
+
+// Отправка данных боту
+function sendDataToBot() {
+    const data = {
+        score: score,
+        sun: sun,
+        bestScore: bestScore,
+        hasSunSkin: hasSunSkin,
+        hasPremiumSkin: hasPremiumSkin
+    };
+    tg.sendData(JSON.stringify(data));
+}
+
+// Загрузка таблицы лидеров
+function loadLeaderboard() {
+    const leaderboardContent = document.getElementById('leaderboard-content');
+    leaderboardContent.innerHTML = '<div class="leaderboard-item"><span>Загрузка...</span></div>';
+    tg.sendData(JSON.stringify({action: 'get_leaderboard'}));
+}
+
+// Проверка подписки
+function checkSubscription() {
+    tg.sendData(JSON.stringify({action: 'check_subscription'}));
+}

@@ -2,21 +2,18 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="format-detection" content="telephone=no">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Star Snake</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=8">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div class="stars"></div>
-    <div class="animated-bg"></div>
     <div class="container">
         <!-- Главное меню -->
-        <div id="main-menu" style="display: flex;">
+        <div id="main-menu">
             <div class="logo-container">
-                <h1 class="glow-text">Star<br>Snake</h1>
+                <h1 class="glow-text">Star Snake</h1>
             </div>
             <div id="score-container">
                 <div class="score-item">
@@ -38,18 +35,18 @@
         </div>
 
         <!-- Игровой контейнер -->
-        <div id="game-container" style="display: none;">
+        <div id="game-container">
             <div class="game-wrapper">
                 <div class="game-header">
-                    <div id="score" class="game-score">Score: 0</div>
-                    <div id="sun-display" class="game-sun">☀️ 0</div>
+                    <div id="score">Score: 0</div>
+                    <div id="sun-display">☀️ 0</div>
                 </div>
                 <canvas id="gameCanvas"></canvas>
             </div>
         </div>
 
         <!-- Магазин -->
-        <div id="shop-container" style="display: none;">
+        <div id="shop-container">
             <h2 class="section-title">Магазин</h2>
             <div class="shop-items">
                 <div class="shop-item">
@@ -72,7 +69,7 @@
         </div>
 
         <!-- Задания -->
-        <div id="tasks-container" style="display: none;">
+        <div id="tasks-container">
             <h2 class="section-title">Задания</h2>
             <div class="tasks-list">
                 <div class="task-item">
@@ -89,17 +86,16 @@
         </div>
 
         <!-- Таблица лидеров -->
-        <div id="leaderboard-container" style="display: none;">
+        <div id="leaderboard-container">
             <h2 class="section-title">Таблица лидеров</h2>
             <div id="leaderboard-content" class="leaderboard-list"></div>
         </div>
-
-        <!-- Кнопка назад -->
-        <button class="button back-button" onclick="showMenu()">
-            <span class="back-icon">←</span>
-            <span class="button-text">Назад</span>
-        </button>
     </div>
+
+    <!-- Кнопка назад -->
+    <button class="button back-button" onclick="showMenu()">
+        <span>← Назад</span>
+    </button>
 
     <script src="game.js"></script>
 </body>
