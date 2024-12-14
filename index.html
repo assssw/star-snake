@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="format-detection" content="telephone=no">
     <title>Star Snake</title>
-    <link rel="stylesheet" href="style.css?v=9">
+    <link rel="stylesheet" href="style.css?v=12">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -16,18 +16,18 @@
                 <h1 class="glow-text">Star Snake</h1>
             </div>
             <div id="score-container">
-                <div class="score-item glow">
+                <div class="score-item">
                     <span>Лучший счет: </span>
                     <span id="best-score">0</span>
                 </div>
-                <div class="score-item glow">
+                <div class="score-item">
                     <span>☀️</span>
                     <span id="sun-balance">0</span>
                 </div>
             </div>
             <div id="timer" class="timer-container"></div>
             <div class="button-container">
-                <button class="button play-button glow-button" onclick="tryStartGame()">Играть</button>
+                <button class="button play-button pulse-button" onclick="tryStartGame()">Играть</button>
                 <button class="button shop-button glow-button" onclick="showShop()">Магазин</button>
                 <button class="button tasks-button glow-button" onclick="showTasks()">Задания</button>
                 <button class="button leaderboard-button glow-button" onclick="showLeaderboard()">Таблица лидеров</button>
@@ -37,9 +37,9 @@
         <!-- Игровой контейнер -->
         <div id="game-container">
             <div class="game-wrapper">
-                <div class="game-header glow">
-                    <div id="score">Score: 0</div>
-                    <div id="sun-display">☀️ 0</div>
+                <div class="game-header">
+                    <div id="score" class="score-display">Score: 0</div>
+                    <div id="sun-display" class="sun-display">☀️ 0</div>
                 </div>
                 <canvas id="gameCanvas"></canvas>
             </div>
@@ -49,7 +49,7 @@
         <div id="shop-container">
             <h2 class="section-title glow-text">Магазин</h2>
             <div class="shop-items">
-                <div class="shop-item glow">
+                <div class="shop-item">
                     <div class="item-info">
                         <span class="item-name">Sun Скин</span>
                         <span class="item-price">1000 ☀️</span>
@@ -57,7 +57,7 @@
                     </div>
                     <button class="button shop-buy-button glow-button" onclick="buySunSkin()">Купить</button>
                 </div>
-                <div class="shop-item premium glow">
+                <div class="shop-item premium">
                     <div class="item-info">
                         <span class="item-name">Premium Скин</span>
                         <span class="item-price">VIP</span>
@@ -72,7 +72,7 @@
         <div id="tasks-container">
             <h2 class="section-title glow-text">Задания</h2>
             <div class="tasks-list">
-                <div class="task-item glow">
+                <div class="task-item">
                     <div class="task-info">
                         <span class="task-name">Подписаться на канал</span>
                         <span class="task-reward">Награда: 100 ☀️</span>

@@ -14,7 +14,7 @@ let dy = 0;
 let appleX = 5;
 let appleY = 5;
 let trail = [];
-let tail = 2;
+let tail = 3; // Уменьшен начальный размер змеи
 let score = 0;
 let sun = 0;
 let isGameRunning = false;
@@ -27,7 +27,7 @@ let hasSunSkin = false;
 let hasPremiumSkin = false;
 let lastGameTime = 0;
 let bestScore = 0;
-let gameSpeed = 200;
+let gameSpeed = 150; // Увеличена начальная скорость
 
 // Функция изменения размера канваса
 function resizeCanvas() {
@@ -51,34 +51,45 @@ window.onload = function() {
 // Функции меню
 function hideAllContainers() {
     ['main-menu', 'game-container', 'shop-container', 'tasks-container', 'leaderboard-container'].forEach(id => {
-        document.getElementById(id).style.display = 'none';
+        const element = document.getElementById(id);
+        if (element) {
+            element.style.display = 'none';
+        }
     });
 }
 
 function showMenu() {
-    hideAllContainers();
-    document.getElementById('main-menu').style.display = 'flex';
-    document.querySelector('.back-button').style.display = 'none';
-    stopGame();
+    if (!isGameRunning) { // Показываем меню только если игра не запущена
+        hideAllContainers();
+        document.getElementById('main-menu').style.display = 'flex';
+        document.querySelector('.back-button').style.display = 'none';
+        stopGame();
+    }
 }
 
 function showShop() {
-    hideAllContainers();
-    document.getElementById('shop-container').style.display = 'block';
-    document.querySelector('.back-button').style.display = 'flex';
+    if (!isGameRunning) {
+        hideAllContainers();
+        document.getElementById('shop-container').style.display = 'block';
+        document.querySelector('.back-button').style.display = 'flex';
+    }
 }
 
 function showTasks() {
-    hideAllContainers();
-    document.getElementById('tasks-container').style.display = 'block';
-    document.querySelector('.back-button').style.display = 'flex';
+    if (!isGameRunning) {
+        hideAllContainers();
+        document.getElementById('tasks-container').style.display = 'block';
+        document.querySelector('.back-button').style.display = 'flex';
+    }
 }
 
 function showLeaderboard() {
-    hideAllContainers();
-    document.getElementById('leaderboard-container').style.display = 'block';
-    document.querySelector('.back-button').style.display = 'flex';
-    loadLeaderboard();
+    if (!isGameRunning) {
+        hideAllContainers();
+        document.getElementById('leaderboard-container').style.display = 'block';
+        document.querySelector('.back-button').style.display = 'flex';
+        loadLeaderboard();
+    }
 }
 
 // Игровые функции
@@ -97,20 +108,19 @@ function tryStartGame() {
 function startGame() {
     hideAllContainers();
     document.getElementById('game-container').style.display = 'block';
-    document.querySelector('.back-button').style.display = 'flex';
+    // Не показываем кнопку назад во время игры
+    document.querySelector('.back-button').style.display = 'none';
     canvas = document.getElementById('gameCanvas');
     ctx = canvas.getContext('2d');
     resizeCanvas();
     resetGame();
     
-    // Увеличиваем задержку до 3 секунд
-    setTimeout(() => {
-        isGameRunning = true;
-        lastTime = performance.now();
-        lastGameTime = Date.now();
-        saveUserData();
-        animationFrame = requestAnimationFrame(gameLoop);
-    }, 3000);
+    isGameRunning = true;
+    lastTime = performance.now();
+    lastGameTime = Date.now();
+    gameSpeed = 150; // Сброс скорости в начале игры
+    saveUserData();
+    animationFrame = requestAnimationFrame(gameLoop);
 }
 
 function gameLoop(currentTime) {
@@ -132,14 +142,19 @@ function updateGame() {
     headX += dx;
     headY += dy;
 
+    // Увеличение скорости каждые 5 очков
+    if (score > 0 && score % 5 === 0) {
+        gameSpeed = Math.max(50, gameSpeed - 1);
+    }
+
     // Проверка границ
     if (headX < 0) headX = tileCount - 1;
     if (headX >= tileCount) headX = 0;
     if (headY < 0) headY = tileCount - 1;
     if (headY >= tileCount) headY = 0;
 
-    // Проверка столкновений
-    for (let i = 0; i < trail.length; i++) {
+    // Проверка столкновений, начиная с 3-го сегмента
+    for (let i = 3; i < trail.length; i++) {
         if (trail[i].x === headX && trail[i].y === headY) {
             gameOver();
             return;
@@ -154,13 +169,16 @@ function updateGame() {
     // Сбор яблок
     if (headX === appleX && headY === appleY) {
         tail++;
-        score += 10;
+        score += 1;
         let sunBonus = 1;
         if (hasSunSkin) sunBonus *= 1.1;
         if (hasPremiumSkin) sunBonus *= 1.5;
         sun += Math.floor(sunBonus);
         updateScore();
         placeApple();
+        
+        // Увеличиваем скорость
+        gameSpeed = Math.max(50, gameSpeed - 2);
     }
 }
 
@@ -171,23 +189,145 @@ function render() {
 
     // Отрисовка змейки
     for (let i = 0; i < trail.length; i++) {
-        ctx.fillStyle = snakeColor;
-        ctx.fillRect(
-            trail[i].x * gridSize + 1,
-            trail[i].y * gridSize + 1,
-            gridSize - 2,
-            gridSize - 2
-        );
+        // Голова змеи
+        if (i === trail.length - 1) {
+            // Основной цвет головы
+            if (hasPremiumSkin) {
+                const gradient = ctx.createLinearGradient(
+                    trail[i].x * gridSize,
+                    trail[i].y * gridSize,
+                    (trail[i].x + 1) * gridSize,
+                    (trail[i].y + 1) * gridSize
+                );
+                gradient.addColorStop(0, '#ff0066');
+                gradient.addColorStop(1, '#6600ff');
+                ctx.fillStyle = gradient;
+            } else if (hasSunSkin) {
+                const gradient = ctx.createLinearGradient(
+                    trail[i].x * gridSize,
+                    trail[i].y * gridSize,
+                    (trail[i].x + 1) * gridSize,
+                    (trail[i].y + 1) * gridSize
+                );
+                gradient.addColorStop(0, '#ffd700');
+                gradient.addColorStop(1, '#ff8c00');
+                ctx.fillStyle = gradient;
+            } else {
+                ctx.fillStyle = snakeColor;
+            }
+            
+            // Рисуем голову
+            ctx.fillRect(
+                trail[i].x * gridSize + 1,
+                trail[i].y * gridSize + 1,
+                gridSize - 2,
+                gridSize - 2
+            );
+
+            // Рисуем глаза
+            ctx.fillStyle = 'white';
+            const eyeSize = gridSize / 6;
+            const eyeOffset = gridSize / 4;
+            
+            // Определяем направление глаз
+            let eyeX = trail[i].x * gridSize + eyeOffset;
+            let eyeX2 = trail[i].x * gridSize + gridSize - eyeOffset;
+            let eyeY = trail[i].y * gridSize + eyeOffset;
+            
+            // Смещение глаз в зависимости от направления движения
+            if (dx === 1) { // вправо
+                eyeX += eyeSize/2;
+                eyeX2 += eyeSize/2;
+            } else if (dx === -1) { // влево
+                eyeX -= eyeSize/2;
+                eyeX2 -= eyeSize/2;
+            } else if (dy === 1) { // вниз
+                eyeY += eyeSize/2;
+            } else if (dy === -1) { // вверх
+                eyeY -= eyeSize/2;
+            }
+            
+            // Левый глаз
+            ctx.beginPath();
+            ctx.arc(eyeX, eyeY, eyeSize, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Правый глаз
+            ctx.beginPath();
+            ctx.arc(eyeX2, eyeY, eyeSize, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Зрачки
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(eyeX, eyeY, eyeSize/2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(eyeX2, eyeY, eyeSize/2, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Тело змеи
+            if (hasPremiumSkin) {
+                const gradient = ctx.createLinearGradient(
+                    trail[i].x * gridSize,
+                    trail[i].y * gridSize,
+                    (trail[i].x + 1) * gridSize,
+                    (trail[i].y + 1) * gridSize
+                );
+                gradient.addColorStop(0, '#ff0066');
+                gradient.addColorStop(1, '#6600ff');
+                ctx.fillStyle = gradient;
+            } else if (hasSunSkin) {
+                const gradient = ctx.createLinearGradient(
+                    trail[i].x * gridSize,
+                    trail[i].y * gridSize,
+                    (trail[i].x + 1) * gridSize,
+                    (trail[i].y + 1) * gridSize
+                );
+                gradient.addColorStop(0, '#ffd700');
+                gradient.addColorStop(1, '#ff8c00');
+                ctx.fillStyle = gradient;
+            } else {
+                ctx.fillStyle = snakeColor;
+            }
+            
+            ctx.fillRect(
+                trail[i].x * gridSize + 1,
+                trail[i].y * gridSize + 1,
+                gridSize - 2,
+                gridSize - 2
+            );
+        }
     }
 
-    // Отрисовка яблока
-    ctx.fillStyle = 'red';
-    ctx.fillRect(
-        appleX * gridSize + 1,
-        appleY * gridSize + 1,
-        gridSize - 2,
-        gridSize - 2
+    // Отрисовка яблока с градиентом и свечением
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "red";
+    
+    const appleGradient = ctx.createRadialGradient(
+        appleX * gridSize + gridSize/2,
+        appleY * gridSize + gridSize/2,
+        0,
+        appleX * gridSize + gridSize/2,
+        appleY * gridSize + gridSize/2,
+        gridSize/2
     );
+    appleGradient.addColorStop(0, '#ff0000');
+    appleGradient.addColorStop(1, '#990000');
+    ctx.fillStyle = appleGradient;
+    
+    ctx.beginPath();
+    ctx.arc(
+        appleX * gridSize + gridSize/2,
+        appleY * gridSize + gridSize/2,
+        gridSize/2 - 1,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
+    
+    // Сброс эффекта свечения
+    ctx.shadowBlur = 0;
 }
 
 // Обработчики событий
@@ -264,16 +404,32 @@ function resetGame() {
     headY = 10;
     dx = 0;
     dy = 0;
-    trail = [];
-    tail = 2;
+    trail = [
+        {x: 10, y: 10},
+        {x: 9, y: 10},
+        {x: 8, y: 10}
+    ]; // 3 сегмента вместо 4
+    tail = 3;
     score = 0;
     updateScore();
     placeApple();
 }
 
 function updateScore() {
-    document.getElementById('score').textContent = `Score: ${score}`;
-    document.getElementById('sun-display').textContent = `☀️ ${sun}`;
+    const scoreElement = document.getElementById('score');
+    const sunElement = document.getElementById('sun-display');
+    
+    scoreElement.textContent = `Score: ${score}`;
+    sunElement.textContent = `☀️ ${sun}`;
+    
+    // Добавляем анимацию
+    scoreElement.classList.add('highlight');
+    sunElement.classList.add('highlight');
+    
+    setTimeout(() => {
+        scoreElement.classList.remove('highlight');
+        sunElement.classList.remove('highlight');
+    }, 300);
 }
 
 function placeApple() {
@@ -380,17 +536,71 @@ function sendDataToBot() {
         hasSunSkin: hasSunSkin,
         hasPremiumSkin: hasPremiumSkin
     };
-    tg.sendData(JSON.stringify(data));
+    tg.WebApp.sendData(JSON.stringify(data));
 }
 
 // Загрузка таблицы лидеров
 function loadLeaderboard() {
     const leaderboardContent = document.getElementById('leaderboard-content');
     leaderboardContent.innerHTML = '<div class="leaderboard-item"><span>Загрузка...</span></div>';
-    tg.sendData(JSON.stringify({action: 'get_leaderboard'}));
+    
+    tg.WebApp.sendData(JSON.stringify({
+        action: 'get_leaderboard'
+    }));
+
+    tg.WebApp.onEvent('mainButtonClicked', function() {
+        const data = tg.WebApp.initDataUnsafe.data;
+        if (data) {
+            try {
+                const parsedData = JSON.parse(data);
+                if (parsedData.type === 'leaderboard' && parsedData.leaders) {
+                    let html = '';
+                    parsedData.leaders.forEach((leader, index) => {
+                        html += `
+                            <div class="leaderboard-item glow">
+                                <div class="leader-info">
+                                    <span class="position">#${index + 1}</span>
+                                    <span class="username">${leader.username}</span>
+                                    <span class="sun">☀️ ${leader.sun}</span>
+                                    <span class="score">🎮 ${leader.score}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    leaderboardContent.innerHTML = html;
+                }
+            } catch (e) {
+                leaderboardContent.innerHTML = '<div class="leaderboard-item"><span>Ошибка загрузки</span></div>';
+            }
+        }
+    });
 }
 
 // Проверка подписки
 function checkSubscription() {
-    tg.sendData(JSON.stringify({action: 'check_subscription'}));
+    tg.WebApp.sendData(JSON.stringify({
+        action: 'check_subscription',
+        channelUsername: '@mariartytt'
+    }));
+
+    tg.WebApp.onEvent('mainButtonClicked', function() {
+        const data = tg.WebApp.initDataUnsafe.data;
+        if (data) {
+            try {
+                const parsedData = JSON.parse(data);
+                if (parsedData.type === 'subscription_check') {
+                    if (parsedData.success) {
+                        sun += 100;
+                        updateScore();
+                        saveUserData();
+                        alert('✅ Награда получена: +100 ☀️');
+                    } else {
+                        alert(parsedData.message || '❌ Вы не подписаны на канал');
+                    }
+                }
+            } catch (e) {
+                alert('Произошла ошибка при проверке подписки');
+            }
+        }
+    });
 }
